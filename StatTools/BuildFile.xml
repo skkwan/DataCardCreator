@@ -5,3 +5,6 @@
 <use   name="DataFormats/FWLite"/>
 <use   name="DataCardCreator/DataFormats"/>
 <use   name="rootcore"/>
+
+<lib name="ROOTDataFrame"/>
+
