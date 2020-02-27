@@ -70,14 +70,14 @@ class DataCardCreatorHThTh_2016 {
     
     //if(doSys_>0)
     //createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
-    
+    /*
     tmp= createHistogramAndShifts(dir_+"ZH120.root","ZH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH125.root","ZH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH130.root","ZH130",(fullselection),luminosity_,prefix);
-    
+    */
     //if(doSys_>0)
     //createShiftsTES("ZH125",dir_+"ZH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
-    
+    /*
     tmp= createHistogramAndShifts(dir_+"WpH120.root","WpH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WpH125.root","WpH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WpH130.root","WpH130",(fullselection),luminosity_,prefix);
@@ -85,12 +85,13 @@ class DataCardCreatorHThTh_2016 {
     tmp= createHistogramAndShifts(dir_+"WmH120.root","WmH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WmH125.root","WmH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WmH130.root","WmH130",(fullselection),luminosity_,prefix);
-    
+    */
     //createShiftsTES("WH125",dir_+"WH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
-    
+    /*
     tmp= createHistogramAndShifts(dir_+"ttH120.root","ttH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ttH125.root","ttH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ttH130.root","ttH130",(fullselection),luminosity_,prefix);
+    */
     //std::cout<<"creating met systematics Higgs"<<std::endl;
     //createMETSystematicsHiggs(fullselection, luminosity_, prefix);
     //std::cout<<"creating jet systematics Higgs"<<std::endl;
@@ -102,10 +103,10 @@ class DataCardCreatorHThTh_2016 {
     // Get duration. Substart timepoints to  
     // get durarion. To cast it to proper unit 
     // use duration cast method 
-    auto duration = duration_cast<microseconds>(stop - start); 
+    auto duration = duration_cast<seconds>(stop - start); 
   
     cout << "Time taken by function: "
-         << duration.count() << " microseconds" << endl; 
+         << duration.count() << " seconds" << endl; 
   }
   
   void close() {
@@ -116,6 +117,7 @@ class DataCardCreatorHThTh_2016 {
     
     TFile *f  = new TFile(file.c_str());
     if(f==0) printf("Not file Found\n");
+
     
     TTree *t= (TTree*)f->Get((channel_+"EventTree/eventTree").c_str());
     
@@ -136,11 +138,23 @@ class DataCardCreatorHThTh_2016 {
 
     if(fout_->Get(folder.c_str())==0)
       fout_->mkdir(folder.c_str());
-    
+
+    auto startDraw = high_resolution_clock::now();
     TH1F *h=0;
     h= new TH1F(name,name,bins_,min_,max_);
     tree->Draw(variable_+">>"+name,cut.c_str());
+    auto endDraw = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(endDraw - startDraw);
+    cout << "Time taken by Draw and pipe to new TH1F: "
+         << duration.count() << " microseconds" << endl;
+
+    auto startSumW2 = high_resolution_clock::now();
     h->Sumw2();
+    auto endSumW2 = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(endSumW2 - startSumW2);
+    cout << "Time taken by SumW2: "
+	 << duration.count() << " microseconds" << endl;
+
     //h->Scale(scaleFactor);
     fout_->cd(folder.c_str());
 
