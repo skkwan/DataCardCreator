@@ -74,11 +74,11 @@ class DataCardCreatorHThTh_2016_RDF {
     
     //if(doSys_>0)
     //createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
-    /*
+
     tmp= createHistogramAndShifts(dir_+"ZH120.root","ZH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH125.root","ZH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH130.root","ZH130",(fullselection),luminosity_,prefix);
-    */
+
     //if(doSys_>0)
     //createShiftsTES("ZH125",dir_+"ZH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
     /*
@@ -119,76 +119,89 @@ class DataCardCreatorHThTh_2016_RDF {
 
   /**********************************************************************/
 
+  /* string name: name of the variable to draw. */
 
-  pair<float,float> createHistogramAndShifts(string file,string name, string cut, float scaleFactor = 1, string postfix = "",bool normUC  = true, bool keys=false) {
-    string folder = filelabel_+postfix;
-
+  pair<float,float> createHistogramAndShifts(string file, string name, string nominalCut, 
+					     float scaleFactor = 1, string postfix = "",bool normUC  = true, bool keys=false) {
     ROOT::EnableImplicitMT();
 
-    auto startCreate = high_resolution_clock::now();
-
-    auto start = high_resolution_clock::now();
-
-    ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), file);
-
-
-    
-    auto end = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(end - start);
-    cout << "Time taken to read dataframe: "
-         << duration.count() << " microseconds" << endl;
-
-    auto cbHisto = high_resolution_clock::now();
-    auto h = d.Filter(cut).Histo1D({name.data(), name.data(), bins_, min_, max_}, "m_sv");
-
-    auto startSumW2 = high_resolution_clock::now();
-    h->Sumw2();
-    auto endSumW2 = high_resolution_clock::now();
-    duration = duration_cast<microseconds>(endSumW2 - startSumW2);
-    cout << "Time for sumw2: " << duration.count() << "microseconds" << endl;
-
-    // Alternatively:
-    // auto dCut = d.Filter(cut);
-    // auto h = dCut.Histo1D({name.data(), name.data(), bins_, min_, max_}, "m_sv");
-
-    auto caHisto = high_resolution_clock::now();
-    // END
-
-    duration = duration_cast<microseconds>(caHisto - cbHisto);
-    cout << "Time taken to Filter and call Histo1D: "
-         << duration.count() << "  microseconds" << endl;
-    
+    string folder = filelabel_+postfix;
     if(fout_->Get(folder.c_str())==0)
       fout_->mkdir(folder.c_str());
     fout_->cd(folder.c_str());
 
 
-    /*
+    auto startCreate = high_resolution_clock::now();
+    ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), file);
     
-    auto startSumW2 = high_resolution_clock::now();
-    h->Sumw2();
-    auto endSumW2 = high_resolution_clock::now();
-
-    duration = duration_cast<microseconds>(endSumW2 - startSumW2);
-    cout << "Time taken to SumW2: " 
-	 << duration.count() << "  microseconds" << endl;
-    */
-    // START
-    auto cbWrite = high_resolution_clock::now();
-    h->Write(name.data(), TObject::kOverwrite);
+    ////////////////////////////////////
+    // Nominal histogram
+    ////////////////////////////////////
     
-    auto caWrite = high_resolution_clock::now();
-    duration = duration_cast<microseconds>(caWrite - cbWrite);
-    // END
-    cout << "Time taken to write histo: "
-         << duration.count() << "  microseconds" << endl;
+    auto hNominal = d.Filter(nominalCut).Histo1D({name.data(), name.data(), bins_, min_, max_}, "m_sv");
+    
 
+    ////////////////////////////////////
+    // Shifts TES
+    ////////////////////////////////////
+    // Do TES shifts if it's a H125.root file
+    bool doTES = (file.find("125") != std::string::npos);
+
+    std::string ptSelectionDM0Up_    = "(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
+    std::string ptSelectionDM0Down_  = "(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
+    std::string ptSelectionDM1Up_    = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.016)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.016)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
+    std::string ptSelectionDM1Down_  = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.004)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.004)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
+    std::string ptSelectionDM10Up_   = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))";
+    std::string ptSelectionDM10Down_ = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))";
+
+    std::cout << file << std::endl;
+    
+    if (doTES){
+      std::cout << "Found a 125 ROOT file" << std::endl;
+      
+      // TODO put in inputSelection, and scaling
+      
+      auto h_ZTT_DM0_UP   = d.Filter(nominalCut+"&&"+ptSelectionDM0Up_).Histo1D({(name+"_CMS_scale_t_1prong_13TeVUp").data(), (name+"_CMS_scale_t_1prong_13TeVUp").data(), bins_, min_, max_}, variable_);
+      auto h_ZTT_DM0_DOWN = d.Filter(nominalCut+"&&"+ptSelectionDM0Down_).Histo1D({(name+"_CMS_scale_t_1prong_13TeVDown").data(), (name+"_CMS_scale_t_1prong_13TeVDown").data(), bins_, min_, max_}, variable_);
+
+      auto h_ZTT_DM1_UP   = d.Filter(nominalCut+"&&"+ptSelectionDM1Up_).Histo1D({(name+"_CMS_scale_t_1prong1pizero_13TeVUp").data(), (name+"_CMS_scale_t_1prong1pizero_13TeVUp").data(), bins_, min_, max_}, variable_);
+      auto h_ZTT_DM1_DOWN = d.Filter(nominalCut+"&&"+ptSelectionDM1Down_).Histo1D({(name+"_CMS_scale_t_1prong1pizero_13TeVDown").data(), (name+"_CMS_scale_t_1prong1pizero_13TeVDown").data(), bins_, min_, max_}, variable_);
+
+      auto h_ZTT_DM10_UP = d.Filter(nominalCut+"&&"+ptSelectionDM10Up_).Histo1D({(name+"_CMS_scale_t_3prong_13TeVUp").data(), (name+"_CMS_scale_t_3prong_13TeVUp").data(), bins_, min_, max_}, variable_);
+      auto h_ZTT_DM10_DOWN = d.Filter(nominalCut+"&&"+ptSelectionDM10Down_).Histo1D({(name+"_CMS_scale_t_3prong_13TeVDown").data(), (name+"_CMS_scale_t_3prong_13TeVDown").data(), bins_, min_, max_}, variable_);
+      
+
+      h_ZTT_DM0_UP->Sumw2();
+      h_ZTT_DM0_UP->Write((name+"_CMS_scale_t_1prong_13TeVUp").data(), TObject::kOverwrite);
+
+      h_ZTT_DM0_DOWN->Sumw2();
+      h_ZTT_DM0_DOWN->Write((name+"_CMS_scale_t_1prong_13TeVDown").data(), TObject::kOverwrite);
+
+      h_ZTT_DM1_UP->Sumw2();
+      h_ZTT_DM1_UP->Write((name+"_CMS_scale_t_1prong1pizero_13TeVUp").data(), TObject::kOverwrite);
+
+      h_ZTT_DM1_DOWN->Sumw2();
+      h_ZTT_DM1_DOWN->Write((name+"_CMS_scale_t_1prong1pizero_13TeVDown").data(), TObject::kOverwrite);
+		
+      h_ZTT_DM10_UP->Sumw2();
+      h_ZTT_DM10_UP->Write((name+"_CMS_scale_t_3prong_13TeVUp").data(), TObject::kOverwrite);
+
+      h_ZTT_DM10_DOWN->Sumw2();
+      h_ZTT_DM10_DOWN->Write((name+"_CMS_scale_t_3prong_13TeVDown").data(), TObject::kOverwrite);
+      
+      
+
+    }
+    // Read & write nominal histogram
+    hNominal->Sumw2();
+    hNominal->Write(name.data(), TObject::kOverwrite);
+    
     Double_t error=0.0;
     
-    float yield = h->IntegralAndError(1,h->GetNbinsX(),error,"");
+    float yield = hNominal->IntegralAndError(1,hNominal->GetNbinsX(),error,"");
 
     if(yield == 0){
-      h->SetBinContent(1,0.00001);
+      hNominal->SetBinContent(1,0.00001);
     }
 			  
     auto endCreate = high_resolution_clock::now();
@@ -197,10 +210,12 @@ class DataCardCreatorHThTh_2016_RDF {
 	 << duration.count() <<"  microseconds" << endl;
 
     return make_pair(yield,error);
+
+
   }
 
   /**********************************************************************/
-
+  /*
   void createShiftsTES(string name, string inputFile, string inputSelections, string inputWeight, float scale, string prefix,  pair<float,float> nominalYield){
     
     std::string ptSelectionDM0Up_    = "(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
@@ -235,6 +250,9 @@ class DataCardCreatorHThTh_2016_RDF {
 
 
   }
+  */
+  /**********************************************************************/
+
   
 
   /**********************************************************************/
