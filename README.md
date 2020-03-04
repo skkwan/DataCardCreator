@@ -1,6 +1,6 @@
 # Data Card Creator (minimal example from PUAnalysis Framework)
 
-## Setup instructions
+## Setup instructions (do only once)
 
 ```
 scram project CMSSW CMSSW_10_6_10
@@ -15,6 +15,12 @@ default libraries (it is in ROOT 6.18, at least), so the
 BuildFiles in the StatTools folder link the correct library.
 
 ## Usage
+Every time the Data Card Creator is changed, re-compile from the top directory (or from StatTools if
+something in StatTools was changed):
+```
+scram b USER_CXXFLAGS="-Wno-error=unused-but-set-variable"
+```
+
 To run the minimal example of the original Data Card Creator:
 ```
 cd StatTools/data

@@ -63,6 +63,7 @@ class DataCardCreatorHThTh_2016_RDF {
 
     std::string fullselection = "("+preselection+")";//*"+weight_;
 
+    /*
     tmp= createHistogramAndShifts(dir_+"ggH120.root","ggH120",(fullselection),luminosity_,prefix);
 
     tmp= createHistogramAndShifts(dir_+"ggH125.root","ggH125",(fullselection),luminosity_,prefix);
@@ -73,7 +74,7 @@ class DataCardCreatorHThTh_2016_RDF {
     tmp= createHistogramAndShifts(dir_+"vbfH120.root","qqH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"vbfH125.root","qqH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"vbfH130.root","qqH130",(fullselection),luminosity_,prefix);
-    
+    */
     //if(doSys_>0)
     //createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
     /*
@@ -100,8 +101,8 @@ class DataCardCreatorHThTh_2016_RDF {
     */
     //std::cout<<"creating met systematics Higgs"<<std::endl;
     //createMETSystematicsHiggs(fullselection, luminosity_, prefix);
-    //std::cout<<"creating jet systematics Higgs"<<std::endl;
-    //createJETSystematicsHiggs(fullselection, luminosity_, prefix);
+    std::cout<<"creating jet systematics Higgs"<<std::endl;
+    createJETSystematicsHiggs(fullselection, luminosity_, prefix);
 
     // Get ending timepoint 
     auto stop = high_resolution_clock::now(); 
@@ -117,6 +118,115 @@ class DataCardCreatorHThTh_2016_RDF {
   
   void close() {
     fout_->Close();
+  }
+
+  /**********************************************************************/
+
+  void createJETSystematicsHiggs(string inputSelections, float scale, string prefix) {
+    
+    createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ggH125.root",  "ggH125_CMS_scale_j_");
+    createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"vbfH125.root", "qqH125_CMS_scale_j_");
+    createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ZH125.root",   "ZH125_CMS_scale_j_");
+    createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ttH125.root" , "ttH125_CMS_scale_j_"); 
+  }
+  
+  /**********************************************************************/
+
+  void createJETSystematicsHiggsForAFile(string inputSelections, float scale, string prefix, string filename, string histNamePrefix){
+    std::vector<std::string> jetSysVec = {"Closure", "AbsoluteFlavMap", "AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat", "FlavorQCD", "Fragmentation", "PileUpDataMC", "PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF", "PileUpPtRef", "RelativeBal", "RelativeFSR", "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF", "RelativePtBB", "RelativePtEC1", "RelativePtEC2", "RelativePtHF", "RelativeStatEC", "RelativeStatFSR", "RelativeStatHF", "SinglePionECAL", "SinglePionHCAL", "TimePtEta", "Total"};
+    
+    // Book the cuts in a map
+    std::map<string, std::pair<string, string>> mapCuts;
+
+    for(auto jetSys : jetSysVec){
+      
+      cout << "Making cuts for" << jetSys << endl;
+
+      std::string newSelectionUp=inputSelections;
+      std::string newSelectionDown=inputSelections;
+      ReplaceStringInPlace(newSelectionUp,   "njets", "njet_"   +jetSys+"Up");
+      ReplaceStringInPlace(newSelectionUp,   "mjj"  , "vbfMass_"+jetSys+"Up");
+      ReplaceStringInPlace(newSelectionDown, "njets", "njet_"   +jetSys+"Down");
+      ReplaceStringInPlace(newSelectionDown, "mjj"  , "vbfMass_"+jetSys+"Down");
+
+      mapCuts.insert(pair<string, pair<string, string>>(filename+"_"+jetSys+"_Up",   make_pair(newSelectionUp,   histNamePrefix+jetSys+"_13TeVUp")));
+      mapCuts.insert(pair<string, pair<string, string>>(filename+"_"+jetSys+"_Down", make_pair(newSelectionDown, histNamePrefix+jetSys+"_13TeVDown")));
+    }
+
+    ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), filename);
+
+    std::vector<ROOT::RDF::RResultPtr<TH1D>> results = MakeResultPtrVector(d, mapCuts);
+
+    FinalizeAndWriteHists(results, scale, "", true, false);
+
+  }
+
+  /**********************************************************************/
+
+  void ReplaceStringInPlace(std::string& subject, const std::string& search,
+			    const std::string& replace) {
+    size_t pos = 0;
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+      subject.replace(pos, search.length(), replace);
+      pos += replace.length();
+    }
+  }
+
+  /**********************************************************************/
+
+  // "File" is the path to the file to be read in. "Nominal cut" is the
+  // nominal cut. 
+  std::vector<ROOT::RDF::RResultPtr<TH1D>> MakeResultPtrVector(ROOT::RDataFrame d,
+							       std::map<string, std::pair<string, string>> mapCuts){
+    
+    std::vector<ROOT::RDF::RResultPtr<TH1D>> vHist;
+
+    std::map<string, std::pair<string, string>>::iterator itMap = mapCuts.begin();
+    
+    while (itMap != mapCuts.end())
+      {
+	// Accessing KEY:
+	string key_ = itMap->first;
+	  
+	// Accessing CUT+KEY pair:
+	std::pair<string, string> pair_ = itMap->second;
+	  
+	// Accessing CUT:
+	string cut_ = pair_.first;
+
+	// Accessing NAME:
+	string name_ = pair_.second;
+
+	//	cout << key_ << " :: " << cut_ << endl;
+
+	vHist.push_back(d.Filter(cut_).Histo1D({(name_).data(), (name_).data(), bins_, min_, max_}, variable_));
+
+	itMap++;
+      }
+    return vHist;
+
+  }
+
+  /**********************************************************************/
+
+  /* Loop through a vector of TH1D RResultPtrs and process/write them. */
+  void FinalizeAndWriteHists(std::vector<ROOT::RDF::RResultPtr<TH1D>> vHist, 
+			     float scaleFactor = 1, string postfix = "", bool normUC  = true, bool keys=false){
+
+    ROOT::EnableImplicitMT();
+
+    string folder = filelabel_+postfix;
+    if(fout_->Get(folder.c_str())==0)
+      fout_->mkdir(folder.c_str());
+    fout_->cd(folder.c_str());
+
+    for (auto it = vHist.begin(); it != vHist.end(); ++it) {
+      TH1D* h = it->GetPtr();
+      h->Sumw2();
+      h->Scale(scaleFactor);
+      h->Write(h->GetName(), TObject::kOverwrite);
+      cout << "Written " << h->GetName() << endl;
+    }
   }
 
   /**********************************************************************/
@@ -137,11 +247,6 @@ class DataCardCreatorHThTh_2016_RDF {
     auto startCreate = high_resolution_clock::now();
     ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), file);
 
-    ///////////////////////////////////
-    // Initialize map
-    /////////////////////////////////// 
-    std::map<std::string, std::string> mapCuts;
-    
     ////////////////////////////////////
     // Nominal histogram
     ////////////////////////////////////

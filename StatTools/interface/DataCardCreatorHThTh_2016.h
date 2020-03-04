@@ -57,29 +57,29 @@ class DataCardCreatorHThTh_2016 {
     auto start = high_resolution_clock::now(); 
 
     std::string fullselection = "("+preselection+")";//*"+weight_;
+
+    /*
     tmp= createHistogramAndShifts(dir_+"ggH120.root","ggH120",(fullselection),luminosity_,prefix);
 
     tmp= createHistogramAndShifts(dir_+"ggH125.root","ggH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ggH130.root","ggH130",(fullselection),luminosity_,prefix);
 
-    //    createShiftsTES("ggH125",dir_+"ggH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
+    // if(doSys_>0)
+    //      createShiftsTES("ggH125",dir_+"ggH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
 
-    // Don't keep this line: only for timing comparisons
-    createShiftsTES("ggH125",dir_+"ggH125.root",(fullselection), weight_, luminosity_,prefix,tmp);
-    
     tmp= createHistogramAndShifts(dir_+"vbfH120.root","qqH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"vbfH125.root","qqH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"vbfH130.root","qqH130",(fullselection),luminosity_,prefix);
     
-    createShiftsTES("vbfH125",dir_+"vbfH125.root",(fullselection), weight_, luminosity_,prefix,tmp);
+    //if(doSys_>0)
+    //createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
     
-    //    createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
-    /*    createShiftsTES("qqH125",dir_+"vbfH125.root","", weight_, luminosity_,prefix,tmp);
- 
     tmp= createHistogramAndShifts(dir_+"ZH120.root","ZH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH125.root","ZH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH130.root","ZH130",(fullselection),luminosity_,prefix);
+    
     */
+
     //if(doSys_>0)
     //createShiftsTES("ZH125",dir_+"ZH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
     //    createShiftsTES("ZH125", dir_+"ZH125.root", "", weight_, luminosity_,prefix,tmp);
@@ -99,15 +99,15 @@ class DataCardCreatorHThTh_2016 {
     tmp= createHistogramAndShifts(dir_+"ttH130.root","ttH130",(fullselection),luminosity_,prefix);
     */
     //std::cout<<"creating met systematics Higgs"<<std::endl;
-    //createMETSystematicsHiggs(fullselection, luminosity_, prefix);
-    //std::cout<<"creating jet systematics Higgs"<<std::endl;
-    //createJETSystematicsHiggs(fullselection, luminosity_, prefix);
+    //    createMETSystematicsHiggs(fullselection, luminosity_, prefix);
+    std::cout<<"creating jet systematics Higgs"<<std::endl;
+    createJETSystematicsHiggs(fullselection, luminosity_, prefix);
 
     // Get ending timepoint 
     auto stop = high_resolution_clock::now(); 
   
     // Get duration. Substart timepoints to  
-    // get durarion. To cast it to proper unit 
+    // get duration. To cast it to proper unit 
     // use duration cast method 
     auto duration = duration_cast<seconds>(stop - start); 
   
@@ -118,6 +118,50 @@ class DataCardCreatorHThTh_2016 {
   void close() {
     fout_->Close();
   }
+
+  void createJETSystematicsHiggs(string inputSelections, float scale, string prefix){
+    std::vector<std::string> jetSysVec = {"Closure", "AbsoluteFlavMap", "AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat", "FlavorQCD", "Fragmentation", "PileUpDataMC", "PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF", "PileUpPtRef", "RelativeBal", "RelativeFSR", "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF", "RelativePtBB", "RelativePtEC1", "RelativePtEC2", "RelativePtHF", "RelativeStatEC", "RelativeStatFSR", "RelativeStatHF", "SinglePionECAL", "SinglePionHCAL", "TimePtEta", "Total"};
+    for(auto jetSys : jetSysVec){
+
+      std::string newSelectionUp=inputSelections;
+      std::string newSelectionDown=inputSelections;
+      ReplaceStringInPlace(newSelectionUp,   "njets", "njet_"   +jetSys+"Up");
+      ReplaceStringInPlace(newSelectionUp,   "mjj"  , "vbfMass_"+jetSys+"Up");
+      ReplaceStringInPlace(newSelectionDown, "njets", "njet_"   +jetSys+"Down");
+      ReplaceStringInPlace(newSelectionDown, "mjj"  , "vbfMass_"+jetSys+"Down");
+          
+      pair<float,float> ggH125JetUp   = createHistogramAndShifts(   dir_+"ggH125.root" ,"ggH125_CMS_scale_j_"+jetSys+"_13TeVUp"  ,newSelectionUp,scale,prefix);
+      pair<float,float> ggH125JetDown = createHistogramAndShifts(   dir_+"ggH125.root" ,"ggH125_CMS_scale_j_"+jetSys+"_13TeVDown",newSelectionDown,scale,prefix);
+
+      
+      pair<float,float> qqH125JetUp   = createHistogramAndShifts(  dir_+"vbfH125.root","qqH125_CMS_scale_j_" +jetSys+"_13TeVUp"  ,newSelectionUp,scale,prefix);
+      pair<float,float> qqH125JetDown = createHistogramAndShifts(  dir_+"vbfH125.root","qqH125_CMS_scale_j_" +jetSys+"_13TeVDown",newSelectionDown,scale,prefix);
+        
+      pair<float,float> ZH125JetUp    = createHistogramAndShifts(  dir_+"ZH125.root"  ,"ZH125_CMS_scale_j_"  +jetSys+"_13TeVUp"  ,newSelectionUp,scale,prefix);
+      pair<float,float> ZH125JetDown  = createHistogramAndShifts(  dir_+"ZH125.root"  ,"ZH125_CMS_scale_j_"  +jetSys+"_13TeVDown",newSelectionDown,scale,prefix);
+
+      // File not found
+      //      pair<float,float> WH125JetUp    = createHistogramAndShifts(  dir_+"WH125.root"  ,"WH125_CMS_scale_j_"  +jetSys+"_13TeVUp"  ,newSelectionUp,scale,prefix);
+      //      pair<float,float> WH125JetDown  = createHistogramAndShifts(  dir_+"WH125.root"  ,"WH125_CMS_scale_j_"  +jetSys+"_13TeVDown",newSelectionDown,scale,prefix);
+          
+      pair<float,float> ttH125JetUp   = createHistogramAndShifts(  dir_+"ttH125.root" ,"ttH125_CMS_scale_j_" +jetSys+"_13TeVUp"  ,newSelectionUp,scale,prefix);
+      pair<float,float> ttH125JetDown = createHistogramAndShifts(  dir_+"ttH125.root" ,"ttH125_CMS_scale_j_" +jetSys+"_13TeVDown",newSelectionDown,scale,prefix);
+
+
+    }
+  }
+
+  /////////////////////////////////////////////////////
+
+  void ReplaceStringInPlace(std::string& subject, const std::string& search,
+			    const std::string& replace) {
+    size_t pos = 0;
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+      subject.replace(pos, search.length(), replace);
+      pos += replace.length();
+    }
+  }
+
   
   pair<float,float> createHistogramAndShifts(string file,string name, string cut,float scaleFactor = 1, string postfix = "",bool normUC  = true, bool keys=false) {
     
@@ -239,41 +283,6 @@ class DataCardCreatorHThTh_2016 {
     */
   }
 
-  
-  pair<float,float> makeHistogram(TTree* tree,string folder,string name,string cut,float scaleFactor = 1.) {
-
-    if(fout_->Get(folder.c_str())==0)
-      fout_->mkdir(folder.c_str());
-    TH1F *h=0;
-
-
-    //    if(binning_.size()==0)
-    h= new TH1F(name.c_str(),name.c_str(),bins_,min_,max_);
-    //    else 
-    //      h = new TH1F(name.c_str(),name.c_str(),binning_.size()-1,&binning_[0]);
-    h->Sumw2();
-
-    tree->Draw(variable_+">>"+name,cut.c_str());
-
-    h->Scale(scaleFactor);
-
-    if(verbose_>0)
-      cout<< " " <<name<<": "<<h->Integral()<<endl;
-
-    //     printf("Created Histogram %s with entries=%f\n",name.c_str(),h->Integral());
-    fout_->cd(folder.c_str());
-
-    Double_t error=0.0;
-    //LD
-    float yield = h->IntegralAndError(1,h->GetNbinsX(),error,"");
-    //float yield = h->IntegralAndError(0,h->GetNbinsX()+1,error,"");
-    if(yield == 0){
-      h->SetBinContent(1,0.00001);
-    }
-    h->Write(h->GetName(),TObject::kOverwrite);
-
-    return make_pair(yield,error);
-  }
   pair<float,float> makeHistogramCustomVar(string variableIn, TTree* tree,string folder,string name,string cut, float scaleFactor = 1.) {
 
     if(fout_->Get(folder.c_str())==0)
