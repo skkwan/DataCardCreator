@@ -17,6 +17,7 @@
 //#include "FineBins.h"
 
 #include <ROOT/RDataFrame.hxx>
+#include <ROOT/RResultPtr.hxx>
 
 #include <chrono> 
 using namespace std::chrono; 
@@ -27,6 +28,7 @@ using std::vector;
 using std::endl;
 using std::pair;
 using std::make_pair;
+
 
 class DataCardCreatorHThTh_2016_RDF {
 	public:
@@ -81,7 +83,7 @@ class DataCardCreatorHThTh_2016_RDF {
 
     //if(doSys_>0)
     //createShiftsTES("ZH125",dir_+"ZH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
-    /*
+    
     tmp= createHistogramAndShifts(dir_+"WpH120.root","WpH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WpH125.root","WpH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WpH130.root","WpH130",(fullselection),luminosity_,prefix);
@@ -89,13 +91,13 @@ class DataCardCreatorHThTh_2016_RDF {
     tmp= createHistogramAndShifts(dir_+"WmH120.root","WmH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WmH125.root","WmH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WmH130.root","WmH130",(fullselection),luminosity_,prefix);
-    */
+
     //createShiftsTES("WH125",dir_+"WH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
-    /*
+
     tmp= createHistogramAndShifts(dir_+"ttH120.root","ttH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ttH125.root","ttH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ttH130.root","ttH130",(fullselection),luminosity_,prefix);
-    */
+
     //std::cout<<"creating met systematics Higgs"<<std::endl;
     //createMETSystematicsHiggs(fullselection, luminosity_, prefix);
     //std::cout<<"creating jet systematics Higgs"<<std::endl;
@@ -110,7 +112,7 @@ class DataCardCreatorHThTh_2016_RDF {
     auto duration = duration_cast<seconds>(stop - start); 
   
     cout << "Time taken by function: "
-         << duration.count() << " seconds" << endl; 
+	 << duration.count() << " seconds" << endl; 
   }
   
   void close() {
@@ -130,9 +132,15 @@ class DataCardCreatorHThTh_2016_RDF {
       fout_->mkdir(folder.c_str());
     fout_->cd(folder.c_str());
 
+    std::cout << file << std::endl;
 
     auto startCreate = high_resolution_clock::now();
     ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), file);
+
+    ///////////////////////////////////
+    // Initialize map
+    /////////////////////////////////// 
+    std::map<std::string, std::string> mapCuts;
     
     ////////////////////////////////////
     // Nominal histogram
@@ -140,57 +148,53 @@ class DataCardCreatorHThTh_2016_RDF {
     
     auto hNominal = d.Filter(nominalCut).Histo1D({name.data(), name.data(), bins_, min_, max_}, "m_sv");
     
-
+    
     ////////////////////////////////////
     // Shifts TES
     ////////////////////////////////////
     // Do TES shifts if it's a H125.root file
     bool doTES = (file.find("125") != std::string::npos);
-
-    std::string ptSelectionDM0Up_    = "(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM0Down_  = "(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM1Up_    = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.016)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.016)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM1Down_  = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.004)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.004)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM10Up_   = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))";
-    std::string ptSelectionDM10Down_ = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))";
-
-    std::cout << file << std::endl;
     
     if (doTES){
-      std::cout << "Found a 125 ROOT file" << std::endl;
+      std::cout << "Found a 125 ROOT file, doing TES shifts" << std::endl;
+
+      std::map<string, string> mapCuts;
+
+      mapCuts.insert(pair<string, string>("ptSelectionDM0Up_",   "(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));
+      mapCuts.insert(pair<string, string>("ptSelectionDM0Down_", "(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));  
+
+      mapCuts.insert(pair<string, string>("ptSelectionDM1Up_",   "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.016)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.016)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));
+      mapCuts.insert(pair<string, string>("ptSelectionDM1Down_", "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.004)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.004)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));
+
+      mapCuts.insert(pair<string, string>("ptSelectionDM10Up_",   "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))"));
+      mapCuts.insert(pair<string, string>("ptSelectionDM10Down_", "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))"));
+
+      std::vector<ROOT::RDF::RResultPtr<TH1D>> vHist;
       
-      // TODO put in inputSelection, and scaling
+      // Fill the vector of RResultPtr by looping through the map
+      std::map<string, string>::iterator itMap = mapCuts.begin();
+
+      while (itMap != mapCuts.end())
+	{
+	  // Accessing CUTNAME:
+	  string key_ = itMap->first;
+
+	  // Accessing CUT:
+	  string cut_ = itMap->second;
+
+	  cout << key_ << " :: " << cut_ << endl;
+
+	  vHist.push_back(d.Filter(nominalCut+"&&"+cut_).Histo1D({(name+key_).data(), (name+key_).data(), bins_, min_, max_}, variable_));
+
+	  itMap++;
+	}
       
-      auto h_ZTT_DM0_UP   = d.Filter(nominalCut+"&&"+ptSelectionDM0Up_).Histo1D({(name+"_CMS_scale_t_1prong_13TeVUp").data(), (name+"_CMS_scale_t_1prong_13TeVUp").data(), bins_, min_, max_}, variable_);
-      auto h_ZTT_DM0_DOWN = d.Filter(nominalCut+"&&"+ptSelectionDM0Down_).Histo1D({(name+"_CMS_scale_t_1prong_13TeVDown").data(), (name+"_CMS_scale_t_1prong_13TeVDown").data(), bins_, min_, max_}, variable_);
+      for (auto it = vHist.begin(); it != vHist.end(); ++it) {
+	TH1D* h = it->GetPtr();
+	h->Sumw2();
+	h->Write((name+"_CMS_scale_t").data(), TObject::kOverwrite);
 
-      auto h_ZTT_DM1_UP   = d.Filter(nominalCut+"&&"+ptSelectionDM1Up_).Histo1D({(name+"_CMS_scale_t_1prong1pizero_13TeVUp").data(), (name+"_CMS_scale_t_1prong1pizero_13TeVUp").data(), bins_, min_, max_}, variable_);
-      auto h_ZTT_DM1_DOWN = d.Filter(nominalCut+"&&"+ptSelectionDM1Down_).Histo1D({(name+"_CMS_scale_t_1prong1pizero_13TeVDown").data(), (name+"_CMS_scale_t_1prong1pizero_13TeVDown").data(), bins_, min_, max_}, variable_);
-
-      auto h_ZTT_DM10_UP = d.Filter(nominalCut+"&&"+ptSelectionDM10Up_).Histo1D({(name+"_CMS_scale_t_3prong_13TeVUp").data(), (name+"_CMS_scale_t_3prong_13TeVUp").data(), bins_, min_, max_}, variable_);
-      auto h_ZTT_DM10_DOWN = d.Filter(nominalCut+"&&"+ptSelectionDM10Down_).Histo1D({(name+"_CMS_scale_t_3prong_13TeVDown").data(), (name+"_CMS_scale_t_3prong_13TeVDown").data(), bins_, min_, max_}, variable_);
-      
-
-      h_ZTT_DM0_UP->Sumw2();
-      h_ZTT_DM0_UP->Write((name+"_CMS_scale_t_1prong_13TeVUp").data(), TObject::kOverwrite);
-
-      h_ZTT_DM0_DOWN->Sumw2();
-      h_ZTT_DM0_DOWN->Write((name+"_CMS_scale_t_1prong_13TeVDown").data(), TObject::kOverwrite);
-
-      h_ZTT_DM1_UP->Sumw2();
-      h_ZTT_DM1_UP->Write((name+"_CMS_scale_t_1prong1pizero_13TeVUp").data(), TObject::kOverwrite);
-
-      h_ZTT_DM1_DOWN->Sumw2();
-      h_ZTT_DM1_DOWN->Write((name+"_CMS_scale_t_1prong1pizero_13TeVDown").data(), TObject::kOverwrite);
-		
-      h_ZTT_DM10_UP->Sumw2();
-      h_ZTT_DM10_UP->Write((name+"_CMS_scale_t_3prong_13TeVUp").data(), TObject::kOverwrite);
-
-      h_ZTT_DM10_DOWN->Sumw2();
-      h_ZTT_DM10_DOWN->Write((name+"_CMS_scale_t_3prong_13TeVDown").data(), TObject::kOverwrite);
-      
-      
-
+      }
     }
     // Read & write nominal histogram
     hNominal->Sumw2();
@@ -205,7 +209,7 @@ class DataCardCreatorHThTh_2016_RDF {
     }
 			  
     auto endCreate = high_resolution_clock::now();
-    duration = duration_cast<microseconds>(endCreate - startCreate);
+    auto duration = duration_cast<microseconds>(endCreate - startCreate);
     cout << "Time inside create: "
 	 << duration.count() <<"  microseconds" << endl;
 
@@ -213,47 +217,6 @@ class DataCardCreatorHThTh_2016_RDF {
 
 
   }
-
-  /**********************************************************************/
-  /*
-  void createShiftsTES(string name, string inputFile, string inputSelections, string inputWeight, float scale, string prefix,  pair<float,float> nominalYield){
-    
-    std::string ptSelectionDM0Up_    = "(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM0Down_  = "(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM1Up_    = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.016)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.016)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM1Down_  = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.004)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.004)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))";
-    std::string ptSelectionDM10Up_   = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))";
-    std::string ptSelectionDM10Down_ = "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))";
-
-    pair<float,float> ZTT_DM0_UP  ;
-    pair<float,float> ZTT_DM0_DOWN  ;
-    pair<float,float> ZTT_DM1_UP    ;
-    pair<float,float> ZTT_DM1_DOWN  ;
-    pair<float,float> ZTT_DM10_UP   ;
-    pair<float,float> ZTT_DM10_DOWN ;
-
-    //std::cout<<"DM0Up Selection "<<"("+ptSelectionDM0Up_    +"&&"+nominalSelection_+"&&"+inputSelections+")*"+inputWeight<<std::endl;
-    ZTT_DM0_UP    = createHistogramAndShiftsCustomVar(variable_+"_DM0_UP"   , inputFile,name+"_CMS_scale_t_1prong_13TeVUp",         ("("+ptSelectionDM0Up_    +"&&"+nominalSelection_+"&&"+inputSelections+")*"+inputWeight),scale,prefix);
-    ZTT_DM0_DOWN  = createHistogramAndShiftsCustomVar(variable_+"_DM0_DOWN" , inputFile,name+"_CMS_scale_t_1prong_13TeVDown",       ("("+ptSelectionDM0Down_  +"&&"+nominalSelection_+"&&"+inputSelections+")*"+inputWeight),scale,prefix);
-    ZTT_DM1_UP    = createHistogramAndShiftsCustomVar(variable_+"_DM1_UP"   , inputFile,name+"_CMS_scale_t_1prong1pizero_13TeVUp",  ("("+ptSelectionDM1Up_    +"&&"+nominalSelection_+"&&"+inputSelections+")*"+inputWeight),scale,prefix);
-    ZTT_DM1_DOWN  = createHistogramAndShiftsCustomVar(variable_+"_DM1_DOWN" , inputFile,name+"_CMS_scale_t_1prong1pizero_13TeVDown",("("+ptSelectionDM1Down_  +"&&"+nominalSelection_+"&&"+inputSelections+")*"+inputWeight),scale,prefix);
-    ZTT_DM10_UP   = createHistogramAndShiftsCustomVar(variable_+"_DM10_UP"  ,inputFile,name+"_CMS_scale_t_3prong_13TeVUp",         ("("+ptSelectionDM10Up_   +"&&"+nominalSelection_+"&&"+inputSelections+")*"+inputWeight),scale,prefix);
-    ZTT_DM10_DOWN = createHistogramAndShiftsCustomVar(variable_+"_DM10_DOWN",inputFile,name+"_CMS_scale_t_3prong_13TeVDown",       ("("+ptSelectionDM10Down_ +"&&"+nominalSelection_+"&&"+inputSelections+")*"+inputWeight),scale,prefix);
-      
-
-    //a quick sanity check... 
-    std::cout<<"ZTT_DM0 nominal "<< nominalYield.first <<" Up "<<ZTT_DM0_UP.first<<" Down "<<ZTT_DM0_DOWN.first<<std::endl;
-    if((abs(nominalYield.first-ZTT_DM0_UP.first)/nominalYield.first)>0.2)
-      std::cout<<"Difference between Nominal and Up is greater than 20% this might indicate a problem"<<std::endl;
-    if((abs(nominalYield.first-ZTT_DM0_DOWN.first)/nominalYield.first)>0.2)
-      std::cout<<"Difference between Nominal and Down is greater than 20% this might indicate a problem"<<std::endl;
-
-
-  }
-  */
-  /**********************************************************************/
-
-  
 
   /**********************************************************************/
 
