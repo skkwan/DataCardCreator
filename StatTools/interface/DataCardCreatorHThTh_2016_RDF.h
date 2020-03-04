@@ -76,14 +76,14 @@ class DataCardCreatorHThTh_2016_RDF {
     
     //if(doSys_>0)
     //createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
-
+    /*
     tmp= createHistogramAndShifts(dir_+"ZH120.root","ZH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH125.root","ZH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH130.root","ZH130",(fullselection),luminosity_,prefix);
 
     //if(doSys_>0)
     //createShiftsTES("ZH125",dir_+"ZH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
-    
+
     tmp= createHistogramAndShifts(dir_+"WpH120.root","WpH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WpH125.root","WpH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WpH130.root","WpH130",(fullselection),luminosity_,prefix);
@@ -97,7 +97,7 @@ class DataCardCreatorHThTh_2016_RDF {
     tmp= createHistogramAndShifts(dir_+"ttH120.root","ttH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ttH125.root","ttH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ttH130.root","ttH130",(fullselection),luminosity_,prefix);
-
+    */
     //std::cout<<"creating met systematics Higgs"<<std::endl;
     //createMETSystematicsHiggs(fullselection, luminosity_, prefix);
     //std::cout<<"creating jet systematics Higgs"<<std::endl;
@@ -158,29 +158,35 @@ class DataCardCreatorHThTh_2016_RDF {
     if (doTES){
       std::cout << "Found a 125 ROOT file, doing TES shifts" << std::endl;
 
-      std::map<string, string> mapCuts;
+      std::map<string, std::pair<string, string>> mapCuts;
 
-      mapCuts.insert(pair<string, string>("ptSelectionDM0Up_",   "(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));
-      mapCuts.insert(pair<string, string>("ptSelectionDM0Down_", "(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));  
+      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM0Up_",   make_pair("(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong_13TeVUp")));
+      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM0Down_", make_pair("(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong_13TeVDown")));  
 
-      mapCuts.insert(pair<string, string>("ptSelectionDM1Up_",   "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.016)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.016)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));
-      mapCuts.insert(pair<string, string>("ptSelectionDM1Down_", "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.004)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.004)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))"));
-
-      mapCuts.insert(pair<string, string>("ptSelectionDM10Up_",   "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))"));
-      mapCuts.insert(pair<string, string>("ptSelectionDM10Down_", "(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))"));
+      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM1Up_",   make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.016)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.016)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong1pizero_13TeVUp")));
+      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM1Down_", make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.004)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.004)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong1pizero_13TeVDown")));
+      
+      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM10Up_",   make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))", "_CMS_scale_t_3prong_13TeVUp")));
+      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM10Down_", make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))", "_CMS_scale_t_3prong_13TeVDown")));
 
       std::vector<ROOT::RDF::RResultPtr<TH1D>> vHist;
       
       // Fill the vector of RResultPtr by looping through the map
-      std::map<string, string>::iterator itMap = mapCuts.begin();
+      std::map<string, std::pair<string, string>>::iterator itMap = mapCuts.begin();
 
       while (itMap != mapCuts.end())
 	{
 	  // Accessing CUTNAME:
-	  string key_ = itMap->first;
-
+	  string cutname_ = itMap->first;
+	  
+	  // Accessing CUT+KEY pair:
+	  std::pair<string, string> pair_ = itMap->second;
+	  
 	  // Accessing CUT:
-	  string cut_ = itMap->second;
+	  string cut_ = pair_.first;
+
+	  // Accessing KEY:
+	  string key_ = pair_.second;
 
 	  cout << key_ << " :: " << cut_ << endl;
 
@@ -192,12 +198,14 @@ class DataCardCreatorHThTh_2016_RDF {
       for (auto it = vHist.begin(); it != vHist.end(); ++it) {
 	TH1D* h = it->GetPtr();
 	h->Sumw2();
-	h->Write((name+"_CMS_scale_t").data(), TObject::kOverwrite);
+	h->Scale(scaleFactor);
+	h->Write(h->GetName(), TObject::kOverwrite);
 
       }
     }
     // Read & write nominal histogram
     hNominal->Sumw2();
+    hNominal->Scale(scaleFactor);
     hNominal->Write(name.data(), TObject::kOverwrite);
     
     Double_t error=0.0;

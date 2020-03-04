@@ -62,24 +62,27 @@ class DataCardCreatorHThTh_2016 {
     tmp= createHistogramAndShifts(dir_+"ggH125.root","ggH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ggH130.root","ggH130",(fullselection),luminosity_,prefix);
 
-    //createShiftsTES("ggH125",dir_+"ggH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
-    createShiftsTES("ggH125",dir_+"ggH125.root","", weight_, luminosity_,prefix,tmp);
+    //    createShiftsTES("ggH125",dir_+"ggH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
+
+    // Don't keep this line: only for timing comparisons
+    createShiftsTES("ggH125",dir_+"ggH125.root",(fullselection), weight_, luminosity_,prefix,tmp);
     
     tmp= createHistogramAndShifts(dir_+"vbfH120.root","qqH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"vbfH125.root","qqH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"vbfH130.root","qqH130",(fullselection),luminosity_,prefix);
     
-    //if(doSys_>0)
-    //createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
-    createShiftsTES("qqH125",dir_+"vbfH125.root","", weight_, luminosity_,prefix,tmp);
+    createShiftsTES("vbfH125",dir_+"vbfH125.root",(fullselection), weight_, luminosity_,prefix,tmp);
+    
+    //    createShiftsTES("qqH125",dir_+"vbfH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_*legCorr,prefix,tmp);
+    /*    createShiftsTES("qqH125",dir_+"vbfH125.root","", weight_, luminosity_,prefix,tmp);
  
     tmp= createHistogramAndShifts(dir_+"ZH120.root","ZH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH125.root","ZH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ZH130.root","ZH130",(fullselection),luminosity_,prefix);
- 
+    */
     //if(doSys_>0)
     //createShiftsTES("ZH125",dir_+"ZH125.root",categoryselection+"&&"+trigSelection_+"&&"+osSignalSelection_,weight_,luminosity_,prefix,tmp);
-    createShiftsTES("ZH125", dir_+"ZH125.root", "", weight_, luminosity_,prefix,tmp);
+    //    createShiftsTES("ZH125", dir_+"ZH125.root", "", weight_, luminosity_,prefix,tmp);
     /*
     tmp= createHistogramAndShifts(dir_+"WpH120.root","WpH120",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"WpH125.root","WpH125",(fullselection),luminosity_,prefix);
