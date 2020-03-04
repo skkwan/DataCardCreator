@@ -3,7 +3,7 @@
 <use   name="roofit"/>
 <use   name="PhysicsTools/FWLite"/>
 <use   name="DataFormats/FWLite"/>
-<use   name="HiggsAnalysis/CombinedLimit"/>
+
 <use   name="DataCardCreator/DataFormats"/>
 
 <lib name="ROOTDataFrame"/>
