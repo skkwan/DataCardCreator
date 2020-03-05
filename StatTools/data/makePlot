@@ -10,7 +10,9 @@ luminosity=35870 #pb
 outputDir='diTauPlots'
 mkdir $outputDir
 
+verbose=1
+
 folder='tt_inclusive'
 direc='/hdfs/store/user/ojalvo/ztt_weighted_Apr7_svFit/'
 
-MakeDataCardHThTh_2016 channel='diTau'  folder=$folder  preselection=$preselection dir=$direc weight='__WEIGHT__*GENWEIGHT'  luminosity=$luminosity  variable='m_sv' bins=30 min=0 max=300 luminosity=$luminosity bins=30 min=2 max=302 outputFile=$outputDir'/tauTau_m_sv.root'
+MakeDataCardHThTh_2016 channel='diTau'  folder=$folder  preselection=$preselection dir=$direc weight='__WEIGHT__*GENWEIGHT'  luminosity=$luminosity  variable='m_sv' bins=30 min=0 max=300 luminosity=$luminosity bins=30 min=2 max=302 outputFile=$outputDir'/tauTau_m_sv.root' verbose=$verbose

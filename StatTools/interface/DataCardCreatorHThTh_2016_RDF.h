@@ -45,6 +45,8 @@ class DataCardCreatorHThTh_2016_RDF {
     max_  = parser.doubleValue("max");
     variable_      = parser.stringValue("variable");    
     
+    verbose_ = parser.integerValue("verbose");
+
     preSelection_ = parser.stringValue("preselection");
     dir_ = parser.stringValue("dir");
     fout_ = new TFile(parser.stringValue("outputfile").c_str(),"RECREATE");
@@ -140,7 +142,7 @@ class DataCardCreatorHThTh_2016_RDF {
 
     for(auto jetSys : jetSysVec){
       
-      cout << "Making cuts for" << jetSys << endl;
+      //      cout << "Making cuts for" << jetSys << endl;
 
       std::string newSelectionUp=inputSelections;
       std::string newSelectionDown=inputSelections;
@@ -174,8 +176,8 @@ class DataCardCreatorHThTh_2016_RDF {
 
   /**********************************************************************/
 
-  // "File" is the path to the file to be read in. "Nominal cut" is the
-  // nominal cut. 
+  /* Applies the cuts in mapCuts to the RDataFrame d, returning a vector
+     of the resulting smart pointers. */
   std::vector<ROOT::RDF::RResultPtr<TH1D>> MakeResultPtrVector(ROOT::RDataFrame d,
 							       std::map<string, std::pair<string, string>> mapCuts){
     
@@ -225,7 +227,8 @@ class DataCardCreatorHThTh_2016_RDF {
       h->Sumw2();
       h->Scale(scaleFactor);
       h->Write(h->GetName(), TObject::kOverwrite);
-      cout << "Written " << h->GetName() << endl;
+
+      cout << h->GetName() << ": " << h->Integral() << ", entries: " << h->GetEntries() << endl;
     }
   }
 
@@ -242,9 +245,8 @@ class DataCardCreatorHThTh_2016_RDF {
       fout_->mkdir(folder.c_str());
     fout_->cd(folder.c_str());
 
-    std::cout << file << std::endl;
+    //    std::cout << file << std::endl;
 
-    auto startCreate = high_resolution_clock::now();
     ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), file);
 
     ////////////////////////////////////
@@ -293,7 +295,7 @@ class DataCardCreatorHThTh_2016_RDF {
 	  // Accessing KEY:
 	  string key_ = pair_.second;
 
-	  cout << key_ << " :: " << cut_ << endl;
+	  //	  cout << key_ << " :: " << cut_ << endl;
 
 	  vHist.push_back(d.Filter(nominalCut+"&&"+cut_).Histo1D({(name+key_).data(), (name+key_).data(), bins_, min_, max_}, variable_));
 
@@ -321,11 +323,6 @@ class DataCardCreatorHThTh_2016_RDF {
       hNominal->SetBinContent(1,0.00001);
     }
 			  
-    auto endCreate = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(endCreate - startCreate);
-    cout << "Time inside create: "
-	 << duration.count() <<"  microseconds" << endl;
-
     return make_pair(yield,error);
 
 
@@ -340,6 +337,7 @@ class DataCardCreatorHThTh_2016_RDF {
   //files
   TFile *fout_;
   int verbose_;
+
   string preSelection_;
   
   //Luminosity and efficiency corrections

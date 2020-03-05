@@ -43,6 +43,9 @@ class DataCardCreatorHThTh_2016 {
     variable_      = parser.stringValue("variable");    
     
     preSelection_ = parser.stringValue("preselection");
+
+    verbose_ = parser.integerValue("verbose");
+
     dir_ = parser.stringValue("dir");
     fout_ = new TFile(parser.stringValue("outputfile").c_str(),"RECREATE");
     
@@ -207,23 +210,13 @@ class DataCardCreatorHThTh_2016 {
     if(fout_->Get(folder.c_str())==0)
       fout_->mkdir(folder.c_str());
 
-    auto startDraw = high_resolution_clock::now();
     TH1F *h=0;
     h= new TH1F(name,name,bins_,min_,max_);
-    tree->Draw(variable_+">>"+name,cut.c_str());
-    auto endDraw = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(endDraw - startDraw);
-    cout << "Time taken by Draw and pipe to new TH1F: "
-         << duration.count() << " microseconds" << endl;
 
-    auto startSumW2 = high_resolution_clock::now();
     h->Sumw2();
-    auto endSumW2 = high_resolution_clock::now();
-    duration = duration_cast<microseconds>(endSumW2 - startSumW2);
-    cout << "Time taken by SumW2: "
-	 << duration.count() << " microseconds" << endl;
+    tree->Draw(variable_+">>"+name,cut.c_str());
+    h->Scale(scaleFactor);
 
-    //h->Scale(scaleFactor);
     fout_->cd(folder.c_str());
 
     Double_t error=0.0;
@@ -234,6 +227,9 @@ class DataCardCreatorHThTh_2016 {
     }
     
     h->Write(h->GetName(),TObject::kOverwrite);
+
+    if(verbose_>0)
+      cout<< " " <<name<<": "<<h->Integral() << ", entries: " << h->GetEntries() <<endl;
 
     return make_pair(yield,error);
   }
@@ -326,12 +322,15 @@ class DataCardCreatorHThTh_2016 {
   //files
   TFile *fout_;
   int verbose_;
+
   string preSelection_;
   
   //Luminosity and efficiency corrections
   float luminosity_;
   float luminosityErr_;
   
+
+
   //histogram options
   TString variable_;
   int bins_;
