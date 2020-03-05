@@ -24,11 +24,17 @@ scram b USER_CXXFLAGS="-Wno-error=unused-but-set-variable"
 To run the minimal example of the original Data Card Creator:
 ```
 cd StatTools/data
-bash makePlot
+bash makePlot 
 ```
 
 **(In-development!)** To run the minimal example of the RDataFrame creator:
 ```
 cd StatTools/data
 bash makePlot_RDF
+```
+
+If the verbose option is on/ something is written to std::cout, it's a good
+idea to pipe the std::cout to a text file to check if the histogram yields and number of entries remain unchanged as one iterates through edits:
+```  
+diff -y out.txt out_RDF.txt     	
 ```

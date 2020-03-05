@@ -28,6 +28,10 @@ using std::vector;
 using std::endl;
 using std::pair;
 using std::make_pair;
+using std::map;
+
+typedef std::map<string, std::pair<string, string>> cuts_t;
+typedef std::vector<ROOT::RDF::RResultPtr<TH1D>> vecPtr_t;
 
 
 class DataCardCreatorHThTh_2016_RDF {
@@ -138,7 +142,7 @@ class DataCardCreatorHThTh_2016_RDF {
     std::vector<std::string> jetSysVec = {"Closure", "AbsoluteFlavMap", "AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat", "FlavorQCD", "Fragmentation", "PileUpDataMC", "PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF", "PileUpPtRef", "RelativeBal", "RelativeFSR", "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF", "RelativePtBB", "RelativePtEC1", "RelativePtEC2", "RelativePtHF", "RelativeStatEC", "RelativeStatFSR", "RelativeStatHF", "SinglePionECAL", "SinglePionHCAL", "TimePtEta", "Total"};
     
     // Book the cuts in a map
-    std::map<string, std::pair<string, string>> mapCuts;
+    cuts_t mapCuts;
 
     for(auto jetSys : jetSysVec){
       
@@ -157,7 +161,7 @@ class DataCardCreatorHThTh_2016_RDF {
 
     ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), filename);
 
-    std::vector<ROOT::RDF::RResultPtr<TH1D>> results = MakeResultPtrVector(d, mapCuts);
+    vecPtr_t results = MakeResultPtrVector(d, mapCuts);
 
     FinalizeAndWriteHists(results, scale, "", true, false);
 
@@ -178,12 +182,12 @@ class DataCardCreatorHThTh_2016_RDF {
 
   /* Applies the cuts in mapCuts to the RDataFrame d, returning a vector
      of the resulting smart pointers. */
-  std::vector<ROOT::RDF::RResultPtr<TH1D>> MakeResultPtrVector(ROOT::RDataFrame d,
-							       std::map<string, std::pair<string, string>> mapCuts){
+  vecPtr_t MakeResultPtrVector(ROOT::RDataFrame d,
+							       cuts_t mapCuts){
     
-    std::vector<ROOT::RDF::RResultPtr<TH1D>> vHist;
+    vecPtr_t vHist;
 
-    std::map<string, std::pair<string, string>>::iterator itMap = mapCuts.begin();
+    cuts_t::iterator itMap = mapCuts.begin();
     
     while (itMap != mapCuts.end())
       {
@@ -212,7 +216,7 @@ class DataCardCreatorHThTh_2016_RDF {
   /**********************************************************************/
 
   /* Loop through a vector of TH1D RResultPtrs and process/write them. */
-  void FinalizeAndWriteHists(std::vector<ROOT::RDF::RResultPtr<TH1D>> vHist, 
+  void FinalizeAndWriteHists(vecPtr_t vHist, 
 			     float scaleFactor = 1, string postfix = "", bool normUC  = true, bool keys=false){
 
     ROOT::EnableImplicitMT();
@@ -265,7 +269,7 @@ class DataCardCreatorHThTh_2016_RDF {
     if (doTES){
       std::cout << "Found a 125 ROOT file, doing TES shifts" << std::endl;
 
-      std::map<string, std::pair<string, string>> mapCuts;
+      cuts_t mapCuts;
 
       mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM0Up_",   make_pair("(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong_13TeVUp")));
       mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM0Down_", make_pair("(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong_13TeVDown")));  
@@ -276,10 +280,10 @@ class DataCardCreatorHThTh_2016_RDF {
       mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM10Up_",   make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))", "_CMS_scale_t_3prong_13TeVUp")));
       mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM10Down_", make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))", "_CMS_scale_t_3prong_13TeVDown")));
 
-      std::vector<ROOT::RDF::RResultPtr<TH1D>> vHist;
+      vecPtr_t vHist;
       
       // Fill the vector of RResultPtr by looping through the map
-      std::map<string, std::pair<string, string>>::iterator itMap = mapCuts.begin();
+      cuts_t::iterator itMap = mapCuts.begin();
 
       while (itMap != mapCuts.end())
 	{
