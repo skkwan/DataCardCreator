@@ -48,7 +48,8 @@ class DataCardCreatorHThTh_2016 {
 
     dir_ = parser.stringValue("dir");
     fout_ = new TFile(parser.stringValue("outputfile").c_str(),"RECREATE");
-    
+
+    luminosity_ = parser.doubleValue("luminosity");
   }
   
   
