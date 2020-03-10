@@ -52,6 +52,9 @@ class DataCardCreatorHThTh_2016_RDF {
     verbose_ = parser.integerValue("verbose");
 
     preSelection_ = parser.stringValue("preselection");
+    trigSelection_        = parser.stringValue("trigSelection");
+    trigSelectionData_    = parser.stringValue("trigSelectionData");
+
     dir_ = parser.stringValue("dir");
     fout_ = new TFile(parser.stringValue("outputfile").c_str(),"RECREATE");
     
@@ -71,6 +74,9 @@ class DataCardCreatorHThTh_2016_RDF {
     auto start = high_resolution_clock::now();
 
     std::string fullselection = "("+preselection+")";//*"+weight_;
+
+    // SYNTAX:      BookCut(string filename, string cutName, string cut, string histName)
+    //BookCut(dir_+"ggH120.root", "ggH120_nominal", fullselection, "ggH120");
 
     /*
     tmp= createHistogramAndShifts(dir_+"ggH120.root","ggH120",(fullselection),luminosity_,prefix);
@@ -110,8 +116,8 @@ class DataCardCreatorHThTh_2016_RDF {
     */
     //std::cout<<"creating met systematics Higgs"<<std::endl;
     //createMETSystematicsHiggs(fullselection, luminosity_, prefix);
-    std::cout<<"creating jet systematics Higgs with luminosity_" << luminosity_ <<std::endl;
-
+    
+    std::cout<<"creating jet systematics Higgs with luminosity " << luminosity_ << endl;
     createJETSystematicsHiggs(fullselection, luminosity_, prefix);
 
     FinishUp(luminosity_, prefix, false, false);
@@ -142,8 +148,27 @@ class DataCardCreatorHThTh_2016_RDF {
 
     createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ZH125.root",   "ZH125_CMS_scale_j_");
     createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ttH125.root" , "ttH125_CMS_scale_j_");
-  }
+
+    // TEMPORARY: Testing making 108 histograms per file
+    std::string trigselection = "("+trigSelection_+")";
+    
+    createJETSystematicsHiggsForAFile(trigselection, scale, prefix, dir_+"ggH125.root",  "dummy_ggH125_CMS_scale_j_");
+
+    createJETSystematicsHiggsForAFile(trigselection, scale, prefix, dir_+"vbfH125.root", "dummy_qqH125_CMS_scale_j_");
+
+    createJETSystematicsHiggsForAFile(trigselection, scale, prefix, dir_+"ZH125.root",   "dummy_ZH125_CMS_scale_j_");
+    createJETSystematicsHiggsForAFile(trigselection, scale, prefix, dir_+"ttH125.root" , "dummy_ttH125_CMS_scale_j_");
   
+
+  // TEMPORARY: Testing making 162 histograms per file
+  std::string bothselection = "("+trigSelection_+"&&"+inputSelections+")";
+  createJETSystematicsHiggsForAFile(bothselection,  scale, prefix, dir_+"ggH125.root",  "dummy2_ggH125_CMS_scale_j_");
+
+  createJETSystematicsHiggsForAFile(bothselection, scale, prefix, dir_+"vbfH125.root", "dummy2_qqH125_CMS_scale_j_");
+
+  createJETSystematicsHiggsForAFile(bothselection, scale, prefix, dir_+"ZH125.root",   "dummy2_ZH125_CMS_scale_j_");
+  createJETSystematicsHiggsForAFile(bothselection, scale, prefix, dir_+"ttH125.root" , "dummy2_ttH125_CMS_scale_j_");
+  }
   /**********************************************************************/
 
   void createJETSystematicsHiggsForAFile(string inputSelections, float scale, string prefix, string filename, string histNamePrefix){
@@ -153,9 +178,6 @@ class DataCardCreatorHThTh_2016_RDF {
     cuts_t mapCuts;
 
     for(auto jetSys : jetSysVec){
-      
-      //      cout << "Making cuts for" << jetSys << endl;
-
       std::string newSelectionUp=inputSelections;
       std::string newSelectionDown=inputSelections;
       ReplaceStringInPlace(newSelectionUp,   "njets", "njet_"   +jetSys+"Up");
@@ -164,21 +186,10 @@ class DataCardCreatorHThTh_2016_RDF {
       ReplaceStringInPlace(newSelectionDown, "mjj"  , "vbfMass_"+jetSys+"Down");
 
       // SYNTAX:      BookCut(string filename, string cutName, string cut, string histName)
-      BookCut(filename, filename+"_"+jetSys+"_Up",  newSelectionUp,   histNamePrefix+jetSys+"_13TeVUp");
-      BookCut(filename, filename+"_"+jetSys+"_Down",newSelectionDown, histNamePrefix+jetSys+"_13TeVDown");
+      BookCut(filename, prefix+filename+"_"+jetSys+"_Up",  newSelectionUp,   histNamePrefix+jetSys+"_13TeVUp");
+      BookCut(filename, prefix+filename+"_"+jetSys+"_Down",newSelectionDown, histNamePrefix+jetSys+"_13TeVDown");
  
-      //      mapCuts.insert(pair<string, pair<string, string>>(filename+"_"+jetSys+"_Up",   make_pair(newSelectionUp,   histNamePrefix+jetSys+"_13TeVUp")));
-      //      mapCuts.insert(pair<string, pair<string, string>>(filename+"_"+jetSys+"_Down", make_pair(newSelectionDown, histNamePrefix+jetSys+"_13TeVDown")));
     }
-
-    
-
-    //    ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), filename);
-
-    //    vecPtr_t results = MakeResultPtrVector(d, mapCuts);
-
-    //    FinalizeAndWriteHists(results, scale, "", true, false);
-
   }
 
   /**********************************************************************/
@@ -194,33 +205,29 @@ class DataCardCreatorHThTh_2016_RDF {
 
   /**********************************************************************/
 
-  /* Books a cut into the private class member dict_. */
-  
+  /* "filename" : name of ROOT file. "cutName": must be unique for each 
+     cut. "cut": the actual selections. "histName": the TH1D name. */
+
   void BookCut(string filename, string cutName, string cut, string histName){
 
     // Check if an entry for that filename already exists in dict_
-    dictionary_t::iterator itDict;
-
-    itDict = dict_.find(filename);
-    
+    dictionary_t::iterator itDict = dict_.find(filename);
     if (itDict != dict_.end())
       {
 	// Element filename already exists
-	// TODO: Add check if the cutName already exists. 
-	// Access the map of cuts and append to it
-	//	cuts_t entry = itDict->second;
 	cuts_t::iterator itCut;
 	itCut = (itDict->second).find(cutName);
 	if (itCut != (itDict->second).end())
-	  cout<< "[WARNING: trying to add cut with existing name -- will fail]" << endl;
-	(itDict->second).insert({cutName, make_pair(cut, histName)});
+	  cout<< "[WARNING: trying to add cut with existing name -- skipped]" << endl;
+	else
+	  (itDict->second).insert({cutName+histName, make_pair(cut, histName)});
 	//	cout << filename << " is already in dict_, inserting " << histName << endl;
       }
     else
       {
-	// Element filename does not exist yet.
+	// Element filename does not exist yet. Make a new cuts_t object.
 	cuts_t newCuts;
-	newCuts.insert({cutName, make_pair(cut, histName)});
+	newCuts.insert({cutName+histName, make_pair(cut, histName)});
 	
 	dict_.insert({filename, newCuts});
 	//	cout << "Adding " << filename << " to dict, inserting " << histName << endl;
@@ -239,29 +246,20 @@ class DataCardCreatorHThTh_2016_RDF {
 
     cout << "Making result pointer vector: ... " << endl;
 
-    //    cuts_t::iterator itMap = mapCuts.begin();
-    
-
-    // for (dictionary_t::iterator itDict = dict_.begin(); itDict != dict_.end(); ++itDict)
     for (cuts_t::iterator itMap = mapCuts.begin(); itMap != mapCuts.end(); ++itMap)
       {
-	// Accessing KEY:
-	string key_ = itMap->first;
+	// Accessing the key (unique name of the cut)
+	// string key_ = itMap->first;
 	  
-	// Accessing CUT+KEY pair:
+	// Accessing the value (a pair consisting of the cutstring and the desired hist name)
 	std::pair<string, string> pair_ = itMap->second;
-	  
-	// Accessing CUT:
 	string cut_ = pair_.first;
-
-	// Accessing NAME:
 	string name_ = pair_.second;
 
-	//	cout << key_ << " :: " << name_ << endl;
+	// cout << key_ << " :: " << name_ << endl;
+	cout << "name :: " << name_ << endl;
 
 	vHist.push_back(d.Filter(cut_).Histo1D({(name_).data(), (name_).data(), bins_, min_, max_}, variable_));
-	
-	//itMap++;
       }
 
     cout << "-------------- Done with making result pointer ------- " << endl;
@@ -272,6 +270,7 @@ class DataCardCreatorHThTh_2016_RDF {
   /**********************************************************************/
 
   /* Loop through a vector of TH1D RResultPtrs and process/write them. */
+
   void FinalizeAndWriteHists(vecPtr_t vHist, 
 			     float scaleFactor = 1, string postfix = "", bool normUC  = true, bool keys=false){
 
@@ -294,128 +293,30 @@ class DataCardCreatorHThTh_2016_RDF {
   /**********************************************************************/
 
   /*  Accesses the private class member dict_ and executes all the cuts
-     em booked in it. */
+      booked in it. */
+
   void FinishUp(float scaleFactor = 1, string postfix = "", bool normUC  = true, bool keys=false){
    
     cout << "Now in FinishUp: ... " <<endl;
 
     for (dictionary_t::iterator itDict = dict_.begin(); itDict != dict_.end(); ++itDict)
       {
-	// Access Filename
+	// Get the filename
 	string filename = itDict->first;
 	
-	//	cout << "In FinishUp: now operating on " << filename << endl;
-	
+	// Get the map of cuts
+	cuts_t allCuts = itDict->second;
+
 	// Make RDataFrame
 	ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), filename);
 	
-	// Make the vector of smart pointers (itDict->second is the cuts_t)
-	cuts_t allCuts = itDict->second;
+	// Make the vector of smart pointers 
 	vecPtr_t vecHists = MakeResultPtrVector(d, allCuts);
 	
 	// Execute the smart pointers (slow step)
 	FinalizeAndWriteHists(vecHists, scaleFactor, postfix, normUC, keys);
 	
       }
-  }
-
-
-
-
-  /**********************************************************************/
-
-  /* string name: name of the variable to draw. */
-
-  pair<float,float> createHistogramAndShifts(string file, string name, string nominalCut, 
-					     float scaleFactor = 1, string postfix = "",bool normUC  = true, bool keys=false) {
-    ROOT::EnableImplicitMT();
-
-    string folder = filelabel_+postfix;
-    if(fout_->Get(folder.c_str())==0)
-      fout_->mkdir(folder.c_str());
-    fout_->cd(folder.c_str());
-
-    //    std::cout << file << std::endl;
-
-    ROOT::RDataFrame d((channel_+"EventTree/eventTree").c_str(), file);
-
-    ////////////////////////////////////
-    // Nominal histogram
-    ////////////////////////////////////
-    
-    auto hNominal = d.Filter(nominalCut).Histo1D({name.data(), name.data(), bins_, min_, max_}, "m_sv");
-    
-    
-    ////////////////////////////////////
-    // Shifts TES
-    ////////////////////////////////////
-    // Do TES shifts if it's a H125.root file
-    bool doTES = (file.find("125") != std::string::npos);
-    
-    if (doTES){
-      std::cout << "Found a 125 ROOT file, doing TES shifts" << std::endl;
-
-      cuts_t mapCuts;
-
-      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM0Up_",   make_pair("(((pt_2*0.988)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.988)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong_13TeVUp")));
-      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM0Down_", make_pair("(((pt_2*0.976)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.976)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong_13TeVDown")));  
-
-      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM1Up_",   make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.016)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.016)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong1pizero_13TeVUp")));
-      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM1Down_", make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.004)>40&&decayMode_2==1)||((pt_2*1.004)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.004)>50&&decayMode_1==1)||((pt_1*1.004)>50&&decayMode_1==10))", "_CMS_scale_t_1prong1pizero_13TeVDown")));
-      
-      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM10Up_",   make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*1.010)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*1.010)>50&&decayMode_1==10))", "_CMS_scale_t_3prong_13TeVUp")));
-      mapCuts.insert(pair<string, pair<string, string>>("ptSelectionDM10Down_", make_pair("(((pt_2*0.982)>40&&decayMode_2==0)||((pt_2*1.010)>40&&decayMode_2==1)||((pt_2*0.998)>40&&decayMode_2==10))&&(((pt_1*0.982)>50&&decayMode_1==0)||((pt_1*1.010)>50&&decayMode_1==1)||((pt_1*0.998)>50&&decayMode_1==10))", "_CMS_scale_t_3prong_13TeVDown")));
-
-      vecPtr_t vHist;
-      
-      // Fill the vector of RResultPtr by looping through the map
-      cuts_t::iterator itMap = mapCuts.begin();
-
-      while (itMap != mapCuts.end())
-	{
-	  // Accessing CUTNAME:
-	  string cutname_ = itMap->first;
-	  
-	  // Accessing CUT+KEY pair:
-	  std::pair<string, string> pair_ = itMap->second;
-	  
-	  // Accessing CUT:
-	  string cut_ = pair_.first;
-
-	  // Accessing KEY:
-	  string key_ = pair_.second;
-
-	  //	  cout << key_ << " :: " << cut_ << endl;
-
-	  vHist.push_back(d.Filter(nominalCut+"&&"+cut_).Histo1D({(name+key_).data(), (name+key_).data(), bins_, min_, max_}, variable_));
-
-	  itMap++;
-	}
-      
-      for (auto it = vHist.begin(); it != vHist.end(); ++it) {
-	TH1D* h = it->GetPtr();
-	h->Sumw2();
-	h->Scale(scaleFactor);
-	h->Write(h->GetName(), TObject::kOverwrite);
-
-      }
-    }
-    // Read & write nominal histogram
-    hNominal->Sumw2();
-    hNominal->Scale(scaleFactor);
-    hNominal->Write(name.data(), TObject::kOverwrite);
-    
-    Double_t error=0.0;
-    
-    float yield = hNominal->IntegralAndError(1,hNominal->GetNbinsX(),error,"");
-
-    if(yield == 0){
-      hNominal->SetBinContent(1,0.00001);
-    }
-			  
-    return make_pair(yield,error);
-
-
   }
 
   /**********************************************************************/
@@ -429,6 +330,8 @@ class DataCardCreatorHThTh_2016_RDF {
   int verbose_;
 
   string preSelection_;
+  string trigSelection_;
+  string trigSelectionData_;
   
   //Luminosity and efficiency corrections
   float luminosity_;

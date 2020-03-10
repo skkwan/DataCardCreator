@@ -26,6 +26,7 @@ using std::vector;
 using std::endl;
 using std::pair;
 using std::make_pair;
+using std::endl;
 
 class DataCardCreatorHThTh_2016 {
 	public:
@@ -43,6 +44,9 @@ class DataCardCreatorHThTh_2016 {
     variable_      = parser.stringValue("variable");    
     
     preSelection_ = parser.stringValue("preselection");
+    
+    trigSelection_        = parser.stringValue("trigSelection");
+    trigSelectionData_    = parser.stringValue("trigSelectionData");
 
     verbose_ = parser.integerValue("verbose");
 
@@ -105,7 +109,16 @@ class DataCardCreatorHThTh_2016 {
     //std::cout<<"creating met systematics Higgs"<<std::endl;
     //    createMETSystematicsHiggs(fullselection, luminosity_, prefix);
     std::cout<<"creating jet systematics Higgs"<<std::endl;
+
+    std::string trigselection = "("+trigSelection_+")";
     createJETSystematicsHiggs(fullselection, luminosity_, prefix);
+    createJETSystematicsHiggs(trigselection, luminosity_, prefix+"_dummy");
+
+    std::string bothselection = "("+trigSelection_+"&&"+fullselection+")";
+    createJETSystematicsHiggs(bothselection, luminosity_, prefix+"_dummy2");
+    
+    // Dummy cuts
+    //    createJETSystematicsHiggs(fullselection+"&&"+trigSelection_, luminosity_, prefix+"_dummy");
 
     // Get ending timepoint 
     auto stop = high_resolution_clock::now(); 
@@ -325,6 +338,9 @@ class DataCardCreatorHThTh_2016 {
   int verbose_;
 
   string preSelection_;
+  
+  string trigSelection_;
+  string trigSelectionData_;
   
   //Luminosity and efficiency corrections
   float luminosity_;

@@ -11,6 +11,10 @@ int main (int argc, char* argv[])
 	//Input Files
 	parser.addOption("channel",optutl::CommandLineParser::kString,"Channel  ","mutau");
 	parser.addOption("preselection",     optutl::CommandLineParser::kString,"preselection",    "");
+
+	parser.addOption("trigSelection",optutl::CommandLineParser::kString,"Trigger Selection","crossTrigger>0||(lTrigger>0&&pt_1>25)");
+	parser.addOption("trigSelectionData",optutl::CommandLineParser::kString,"Trigger Selection","crossTrigger>0||(lTrigger>0&&pt_1>25)");
+
 	parser.addOption("folder",optutl::CommandLineParser::kString,"folder","_inclusive");
 
 	//Other Options
