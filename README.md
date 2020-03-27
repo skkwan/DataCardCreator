@@ -37,7 +37,9 @@ bash makePlot_RDF
 If the verbose option is on/ something is written to std::cout, it's a good
 idea to pipe the std::cout to a text file to check if the histogram yields and number of entries remain unchanged as one iterates through edits:
 ```  
-diff -y out.txt out_RDF.txt     	
+sort out.txt > out.sorted
+sort outRDF.txt > outRDF.sorted
+diff -y out.sorted outRDF.sorted
 ```
 
 ### Boost example (in-development)
