@@ -1,5 +1,5 @@
 
-#include "DataCardCreator/StatTools/interface/DataCardCreatorHThTh_2016.h"
+#include "DataCardCreator/StatTools/interface/DataCardCreatorHThTh_2016_Boost.h"
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h" 
 
 
@@ -15,7 +15,6 @@ int main (int argc, char* argv[])
 	parser.addOption("trigSelection",optutl::CommandLineParser::kString,"Trigger Selection","");
 	parser.addOption("trigSelectionData",optutl::CommandLineParser::kString,"Trigger Selection","");
 
-	parser.addOption("signalSelection", optutl::CommandLineParser::kString, "Signal Selection", "");
 	parser.addOption("folder",optutl::CommandLineParser::kString,"folder","_inclusive");
 
 	//Other Options
@@ -32,7 +31,7 @@ int main (int argc, char* argv[])
 
 	parser.parseArguments (argc, argv);
 
-	DataCardCreatorHThTh_2016 creator(parser);
+	DataCardCreatorHThTh_2016_Boost creator(parser);
 	std::string inclSel = parser.stringValue("preselection"); 
 	std::string foldername = parser.stringValue("folder");
 	creator.makeHiggsShape(inclSel,inclSel,foldername);

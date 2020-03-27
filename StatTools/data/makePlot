@@ -7,8 +7,11 @@ preselection='isoTight_1>0.5&&isoTight_2>0.5&&'\
 'npv>0&&diLeptons==0&&extraelec_veto==0&&extramuon_veto==0'
 
 ## Trigger Selection
-trigSelection='pt_1>24&&HLT_Any>0&&hltMedComb_1>0&&hltMedComb_2' 
-trigSelectionData='HLT_Any>0' #only for Data 
+trigselection='pt_1>24&&HLT_Any>0&&hltMedComb_1>0&&hltMedComb_2' 
+trigselectiondata='HLT_Any>0' #only for Data 
+
+## Signal Selection: assuming that "Higgs_Pt" was renamed to "pt_sv" 
+signalselection='(pt_sv>100&&pt_sv<170)*(njets==1||(njets>=2&&!(mjj>300&&abs(jdeta)>2.5&&njetingap<1)))'
 
 luminosity=35870 #pb
 outputDir='diTauPlots'
@@ -19,4 +22,4 @@ verbose=1
 folder='tt_inclusive'
 direc='/hdfs/store/user/ojalvo/ztt_weighted_Apr7_svFit/'
 
-MakeDataCardHThTh_2016 channel='diTau'  folder=$folder  preselection=$preselection trigSelection=$trigSelection dir=$direc weight='__WEIGHT__*GENWEIGHT'  luminosity=$luminosity  variable='m_sv' bins=30 min=0 max=300 luminosity=$luminosity bins=30 min=2 max=302 outputFile=$outputDir'/tauTau_m_sv.root' verbose=$verbose
+MakeDataCardHThTh_2016 channel='diTau'  folder=$folder  preselection=$preselection trigSelection=$trigSelection signalSelection=$signalselection dir=$direc weight='__WEIGHT__*GENWEIGHT'  luminosity=$luminosity  variable='m_sv' bins=30 min=0 max=300 luminosity=$luminosity bins=30 min=2 max=302 outputFile=$outputDir'/tauTau_m_sv.root' verbose=$verbose

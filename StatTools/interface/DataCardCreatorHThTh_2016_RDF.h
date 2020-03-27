@@ -54,6 +54,7 @@ class DataCardCreatorHThTh_2016_RDF {
     preSelection_ = parser.stringValue("preselection");
     trigSelection_        = parser.stringValue("trigSelection");
     trigSelectionData_    = parser.stringValue("trigSelectionData");
+    signalSelection_      = parser.stringValue("signalSelection");
 
     dir_ = parser.stringValue("dir");
     fout_ = new TFile(parser.stringValue("outputfile").c_str(),"RECREATE");
@@ -118,7 +119,7 @@ class DataCardCreatorHThTh_2016_RDF {
     //createMETSystematicsHiggs(fullselection, luminosity_, prefix);
     
     std::cout<<"creating jet systematics Higgs with luminosity " << luminosity_ << endl;
-    createJETSystematicsHiggs(fullselection, luminosity_, prefix);
+    createJETSystematicsHiggs("("+fullselection+"&&"+signalSelection_+")", luminosity_, prefix);
 
     FinishUp(luminosity_, prefix, false, false);
 
@@ -126,7 +127,7 @@ class DataCardCreatorHThTh_2016_RDF {
     auto stop = high_resolution_clock::now(); 
   
     // Get duration. Substart timepoints to  
-    // get durarion. To cast it to proper unit 
+    // get duration. To cast it to proper unit 
     // use duration cast method 
     auto duration = duration_cast<seconds>(stop - start); 
   
@@ -144,12 +145,14 @@ class DataCardCreatorHThTh_2016_RDF {
     
     createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ggH125.root",  "ggH125_CMS_scale_j_");
 
+    
     createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"vbfH125.root", "qqH125_CMS_scale_j_");
 
     createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ZH125.root",   "ZH125_CMS_scale_j_");
     createJETSystematicsHiggsForAFile(inputSelections, scale, prefix, dir_+"ttH125.root" , "ttH125_CMS_scale_j_");
 
     // TEMPORARY: Testing making 108 histograms per file
+    /*
     std::string trigselection = "("+trigSelection_+")";
     
     createJETSystematicsHiggsForAFile(trigselection, scale, prefix, dir_+"ggH125.root",  "dummy_ggH125_CMS_scale_j_");
@@ -167,7 +170,8 @@ class DataCardCreatorHThTh_2016_RDF {
   createJETSystematicsHiggsForAFile(bothselection, scale, prefix, dir_+"vbfH125.root", "dummy2_qqH125_CMS_scale_j_");
 
   createJETSystematicsHiggsForAFile(bothselection, scale, prefix, dir_+"ZH125.root",   "dummy2_ZH125_CMS_scale_j_");
-  createJETSystematicsHiggsForAFile(bothselection, scale, prefix, dir_+"ttH125.root" , "dummy2_ttH125_CMS_scale_j_");
+  createJETSystematicsHiggsForAFile(bothselection, scale, prefix, dir_+"ttH125.root" , "dummy2_ttH125_CMS_scale_j_"); 
+    */
   }
   /**********************************************************************/
 
@@ -186,6 +190,8 @@ class DataCardCreatorHThTh_2016_RDF {
       ReplaceStringInPlace(newSelectionDown, "mjj"  , "vbfMass_"+jetSys+"Down");
 
       // SYNTAX:      BookCut(string filename, string cutName, string cut, string histName)
+      //      cout << newSelectionUp << endl;
+      //      cout << newSelectionDown << endl;
       BookCut(filename, prefix+filename+"_"+jetSys+"_Up",  newSelectionUp,   histNamePrefix+jetSys+"_13TeVUp");
       BookCut(filename, prefix+filename+"_"+jetSys+"_Down",newSelectionDown, histNamePrefix+jetSys+"_13TeVDown");
  
@@ -244,7 +250,7 @@ class DataCardCreatorHThTh_2016_RDF {
     
     vecPtr_t vHist;
 
-    cout << "Making result pointer vector: ... " << endl;
+    //    cout << "Making result pointer vector: ... " << endl;
 
     for (cuts_t::iterator itMap = mapCuts.begin(); itMap != mapCuts.end(); ++itMap)
       {
@@ -257,12 +263,12 @@ class DataCardCreatorHThTh_2016_RDF {
 	string name_ = pair_.second;
 
 	// cout << key_ << " :: " << name_ << endl;
-	cout << "name :: " << name_ << endl;
+	// cout << "name :: " << name_ << endl;
 
 	vHist.push_back(d.Filter(cut_).Histo1D({(name_).data(), (name_).data(), bins_, min_, max_}, variable_));
       }
 
-    cout << "-------------- Done with making result pointer ------- " << endl;
+    // cout << "-------------- Done with making result pointer ------- " << endl;
     return vHist;
 
   }
@@ -297,7 +303,7 @@ class DataCardCreatorHThTh_2016_RDF {
 
   void FinishUp(float scaleFactor = 1, string postfix = "", bool normUC  = true, bool keys=false){
    
-    cout << "Now in FinishUp: ... " <<endl;
+    //    cout << "Now in FinishUp: ... " <<endl;
 
     for (dictionary_t::iterator itDict = dict_.begin(); itDict != dict_.end(); ++itDict)
       {
@@ -332,6 +338,7 @@ class DataCardCreatorHThTh_2016_RDF {
   string preSelection_;
   string trigSelection_;
   string trigSelectionData_;
+  string signalSelection_;
   
   //Luminosity and efficiency corrections
   float luminosity_;

@@ -16,6 +16,10 @@
 #include <boost/lexical_cast.hpp>
 //#include "FineBins.h"
 
+#include <boost/histogram.hpp>
+#include <boost/format.hpp>   // for printing
+#include <boost/lambda/lambda.hpp>
+using namespace boost::histogram;
 
 #include <chrono> 
 using namespace std::chrono; 
@@ -28,10 +32,10 @@ using std::pair;
 using std::make_pair;
 using std::endl;
 
-class DataCardCreatorHThTh_2016 {
+class DataCardCreatorHThTh_2016_Boost {
 	public:
   
-  DataCardCreatorHThTh_2016(optutl::CommandLineParser parser) {
+  DataCardCreatorHThTh_2016_Boost(optutl::CommandLineParser parser) {
     channel_  = parser.stringValue("channel");
     
     string name_=channel_;
@@ -44,7 +48,7 @@ class DataCardCreatorHThTh_2016 {
     variable_      = parser.stringValue("variable");    
     
     preSelection_ = parser.stringValue("preselection");
-    signalSelection_      = parser.stringValue("signalSelection");
+    
     trigSelection_        = parser.stringValue("trigSelection");
     trigSelectionData_    = parser.stringValue("trigSelectionData");
 
@@ -64,7 +68,7 @@ class DataCardCreatorHThTh_2016 {
     cout<<"Make Higgs Shape"<<endl;
     auto start = high_resolution_clock::now(); 
 
-    std::string fullselection = "("+preselection+"&&"+signalSelection_+")";//*"+weight_;
+    std::string fullselection = "("+preselection+")";//*"+weight_;
 
     /*
     tmp= createHistogramAndShifts(dir_+"ggH120.root","ggH120",(fullselection),luminosity_,prefix);
@@ -106,18 +110,14 @@ class DataCardCreatorHThTh_2016 {
     tmp= createHistogramAndShifts(dir_+"ttH125.root","ttH125",(fullselection),luminosity_,prefix);
     tmp= createHistogramAndShifts(dir_+"ttH130.root","ttH130",(fullselection),luminosity_,prefix);
     */
-    // std::cout<<"creating met systematics Higgs"<<std::endl;
-    // createMETSystematicsHiggs(fullselection, luminosity_, prefix);
+    //std::cout<<"creating met systematics Higgs"<<std::endl;
+    //    createMETSystematicsHiggs(fullselection, luminosity_, prefix);
     std::cout<<"creating jet systematics Higgs"<<std::endl;
 
-    std::string trigselection = "("+trigSelection_+")";
+
     createJETSystematicsHiggs(fullselection, luminosity_, prefix);
 
-    // Uncomment the following after making sure that the "signalSelection" cuts work
-    //    createJETSystematicsHiggs(trigselection, luminosity_, prefix+"_dummy");
-    //    std::string bothselection = "("+trigSelection_+"&&"+fullselection+")";
-    //    createJETSystematicsHiggs(bothselection, luminosity_, prefix+"_dummy2");
-    
+
     // Get ending timepoint 
     auto stop = high_resolution_clock::now(); 
   
@@ -144,7 +144,7 @@ class DataCardCreatorHThTh_2016 {
       ReplaceStringInPlace(newSelectionUp,   "mjj"  , "vbfMass_"+jetSys+"Up");
       ReplaceStringInPlace(newSelectionDown, "njets", "njet_"   +jetSys+"Down");
       ReplaceStringInPlace(newSelectionDown, "mjj"  , "vbfMass_"+jetSys+"Down");
-      
+          
       pair<float,float> ggH125JetUp   = createHistogramAndShifts(   dir_+"ggH125.root" ,"ggH125_CMS_scale_j_"+jetSys+"_13TeVUp"  ,newSelectionUp,scale,prefix);
       pair<float,float> ggH125JetDown = createHistogramAndShifts(   dir_+"ggH125.root" ,"ggH125_CMS_scale_j_"+jetSys+"_13TeVDown",newSelectionDown,scale,prefix);
 
@@ -241,7 +241,7 @@ class DataCardCreatorHThTh_2016 {
     h->Write(h->GetName(),TObject::kOverwrite);
 
     if(verbose_>0)
-      cout << name<<": "<<h->Integral() << ", entries: " << h->GetEntries() <<endl;
+      cout<< " " <<name<<": "<<h->Integral() << ", entries: " << h->GetEntries() <<endl;
 
     return make_pair(yield,error);
   }
@@ -339,8 +339,6 @@ class DataCardCreatorHThTh_2016 {
   
   string trigSelection_;
   string trigSelectionData_;
-
-  string signalSelection_;
   
   //Luminosity and efficiency corrections
   float luminosity_;
