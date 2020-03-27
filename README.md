@@ -21,13 +21,14 @@ something in StatTools was changed):
 scram b USER_CXXFLAGS="-Wno-error=unused-but-set-variable"
 ```
 
+### Standard TTree->Draw() version
 To run the minimal example of the original Data Card Creator:
 ```
 cd StatTools/data
 bash makePlot 
 ```
 
-**(In-development!)** To run the minimal example of the RDataFrame creator:
+### RDataFrame example
 ```
 cd StatTools/data
 bash makePlot_RDF
@@ -37,4 +38,12 @@ If the verbose option is on/ something is written to std::cout, it's a good
 idea to pipe the std::cout to a text file to check if the histogram yields and number of entries remain unchanged as one iterates through edits:
 ```  
 diff -y out.txt out_RDF.txt     	
+```
+
+### Boost example (in-development)
+If using a virtual environment on lxplus, just `pip install boost-histogram`. If you are not using environments,
+you can do a user install (`--user`), which is not as good as an environmental in general, but works. 
+```
+cd StatTools/data
+bash makePlot_Boost
 ```

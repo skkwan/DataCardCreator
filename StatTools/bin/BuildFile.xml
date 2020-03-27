@@ -6,7 +6,9 @@
 
 <use   name="DataCardCreator/DataFormats"/>
 
-<lib name="ROOTDataFrame"/>
-<bin   name="MakeDataCardHThTh_2016_RDF" file="MakeDataCardHThTh_2016_RDF.cc"> </bin>
-<bin   name="MakeDataCardHThTh_2016" file="MakeDataCardHThTh_2016.cc"> </bin>
+<lib   name="ROOTDataFrame"/>
+
+<bin   name="MakeDataCardHThTh_2016_Boost" file="MakeDataCardHThTh_2016_Boost.cc"> </bin>
+<bin   name="MakeDataCardHThTh_2016_RDF"   file="MakeDataCardHThTh_2016_RDF.cc">   </bin>
+<bin   name="MakeDataCardHThTh_2016"       file="MakeDataCardHThTh_2016.cc">       </bin>
 
